@@ -1,0 +1,31 @@
+{
+    "name": "PageMill/Router",
+    "type": "library",
+    "description": "A PHP request router",
+    "homepage": "https://github.com/dealnews/PageMill.Router",
+    "license": "BSD",
+    "authors": [
+        {
+            "name": "Brian Moon",
+            "email": "brianm@dealnews.com",
+            "homepage": "http://dealnews.com/",
+            "role": "Developer"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "4.6.*"
+    },
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "PageMill\\Router\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PageMill\\Router\\": "tests/",
+        }
+    }
+}
