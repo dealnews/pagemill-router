@@ -1,5 +1,4 @@
-# Pagemill Router
-A PHP Request Router
+# PageMill Router
 
 This library determines a route for a web request. It is built to be easy to use
 and fast.
