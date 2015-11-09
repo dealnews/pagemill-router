@@ -47,9 +47,11 @@ the constructor.
 
 There are three matching types supported.
 
-*exact* - The request path must match `pattern` exactly.
-*starts_with* - Matches when the request path begins with the exact value of `pattern`.
-*regex* - Uses a regular expression to match against the reqeust path.
+**exact** - The request path must match `pattern` exactly.
+
+**starts_with** - Matches when the request path begins with the exact value of `pattern`.
+
+**regex** - Uses a regular expression to match against the reqeust path.
 
 ## Matching Tokens
 
