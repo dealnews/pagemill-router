@@ -1,5 +1,5 @@
 {
-    "name": "PageMill/Router",
+    "name": "pagemill/router",
     "type": "library",
     "description": "A PHP request router",
     "homepage": "https://github.com/dealnews/PageMill.Router",
