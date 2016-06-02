@@ -120,7 +120,7 @@ array(
 )
 ```
 
-## Matching Hostname Request Method and Other HTTP Headers
+## Matching Hostname, Request Method, and Other HTTP Headers
 
 It is also possible to match on hostname, request method and other HTTP headers by adding these settings to the route array.
 
@@ -292,7 +292,7 @@ $routes = $r->get_routes();
 
 ## Adding Sub Routes (aka Route Maps)
 
-If you have several routes that all have the same prefix or match the same pattern, it can be beneficial to group those routes as sub-routes under a more general route. For example, if we hvae multiple routes that fall under the `/foo` path, we could configure our routes like this:
+If you have several routes that all have the same prefix or match the same pattern, it can be beneficial to group those routes as sub-routes under a more general route. For example, if we have multiple routes that fall under the `/foo` path, we could configure our routes like this:
 
 ```
 $r = new PageMill\Router\Router(
