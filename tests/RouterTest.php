@@ -109,6 +109,30 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
 
     }
 
+    public function testDefaultRoute() {
+        $r = new Router();
+        $r->add(
+            "exact",
+            "/foo",
+            "Foo"
+        );
+        $r->add(
+            "default",
+            "",
+            "FooBar"
+        );
+
+        $route = $r->match("/foo/bar");
+        $this->assertEquals(
+            array(
+                "type" => "default",
+                "pattern" => "",
+                "action" => "FooBar",
+            ),
+            $route
+        );
+    }
+
     public function testNoMatch() {
         $r = new Router();
         $r->add(
@@ -147,6 +171,69 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
                 "action" => "FooBar",
                 "tokens" => array()
             ),
+            $route
+        );
+    }
+
+    public function testSubRouteMatch() {
+        $r = new Router();
+        $route = $r->match(
+            "/foo/bar",
+            array(
+                array(
+                    "type" => "starts_with",
+                    "pattern" => "/foo",
+                    "routes" => array(
+                        array(
+                            "type" => "exact",
+                            "pattern" => "/foo/bar",
+                            "action" => "FooBar"
+                        ),
+                        array(
+                            "type" => "exact",
+                            "pattern" => "/foo/baz",
+                            "action" => "FooBaz"
+                        ),
+                    )
+                )
+            )
+        );
+        $this->assertEquals(
+            array(
+                "type" => "exact",
+                "pattern" => "/foo/bar",
+                "action" => "FooBar",
+                "tokens" => array()
+            ),
+            $route
+        );
+    }
+
+    public function testSubRouteNoMatch() {
+        $r = new Router();
+        $route = $r->match(
+            "/foo/ber",
+            array(
+                array(
+                    "type" => "starts_with",
+                    "pattern" => "/foo",
+                    "routes" => array(
+                        array(
+                            "type" => "exact",
+                            "pattern" => "/foo/bar",
+                            "action" => "FooBar"
+                        ),
+                        array(
+                            "type" => "exact",
+                            "pattern" => "/foo/baz",
+                            "action" => "FooBaz"
+                        ),
+                    )
+                )
+            )
+        );
+        $this->assertEquals(
+            false,
             $route
         );
     }
@@ -464,6 +551,28 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
             "www.example.com",
             $resp["host"]
         );
+
+        $route = array(
+            "type" => "exact",
+            "pattern" => "/foo/bar",
+            "action" => "FooBar",
+            "host" => array(
+                "type" => "regex",
+                "pattern" => '/\.example\.com$/'
+            )
+        );
+
+        $resp = $r->match_host(
+            $route,
+            array(
+                "HTTP_HOST" => "www.example.com"
+            )
+        );
+        $this->assertEquals(
+            "www.example.com",
+            $resp["host"]
+        );
+
     }
 
     public function testHostNoMatch() {
@@ -485,6 +594,28 @@ class RouterTest extends \PHPUnit_Framework_TestCase {
             false,
             $resp
         );
+
+        $route = array(
+            "type" => "exact",
+            "pattern" => "/foo/bar",
+            "action" => "FooBar",
+            "host" => array(
+                "type" => "regex",
+                "pattern" => '/\.example\.com$/'
+            )
+        );
+
+        $resp = $r->match_host(
+            $route,
+            array(
+                "HTTP_HOST" => "www2.example2.com"
+            )
+        );
+        $this->assertEquals(
+            false,
+            $resp
+        );
+
     }
 
     public function testHeaderMatch() {

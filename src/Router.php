@@ -46,10 +46,59 @@ class Router {
      * @param array  $options Array of additional options for the route matching
      */
     public function add($type, $pattern, $action, array $options = array()) {
+        $options["action"] = $action;
+        $route = $this->create_route($type, $pattern, $options);
+        $this->routes[] = $route;
+    }
+
+    /**
+     * Adds a route to the route list which contains a list of sub-routes
+     * to be used to find the final matching route.
+     *
+     * @param string $type    Matching type. One of exact, regex, starts_with,
+     *                        or default. There should be only one route with
+     *                        the type default.
+     * @param string $pattern Either a string or a regular expression
+     * @param array  $routes  Array of routes
+     * @param array  $options Array of additional options for the route matching
+     */
+    public function add_map($type, $pattern, array $routes, array $options = array()) {
+        $sub_routes = array();
+        foreach ($routes as $route) {
+            if (isset($route["type"])) {
+                $route_type = $route["type"];
+                unset($route["type"]);
+            } else {
+                $route_type = $type;
+            }
+            if (isset($route["pattern"])) {
+                $route_pattern = $route["pattern"];
+                unset($route["pattern"]);
+            } else {
+                $route_pattern = $pattern;
+            }
+            $sub_routes[] = $this->create_route($route_type, $route_pattern, $route);
+        }
+
+        $options["routes"] = $sub_routes;
+        $route = $this->create_route($type, $pattern, $options);
+        $this->routes[] = $route;
+    }
+
+    /**
+     * Creates a route entry with validation of the options
+     *
+     * @param string $type    Matching type. One of exact, regex, starts_with,
+     *                        or default. There should be only one route with
+     *                        the type default.
+     * @param string $pattern Either a string or a regular expression
+     * @param array  $options Array of additional options for the route matching
+     *                        as well as any action or list of sub-routes
+     */
+    public function create_route($type, $pattern, array $options = array()) {
         $route = array(
             "type" => $type,
-            "pattern" => $pattern,
-            "action" => $action
+            "pattern" => $pattern
         );
         if (!empty($options)) {
             foreach ($options as $opt => $value) {
@@ -58,14 +107,16 @@ class Router {
                     case "tokens":
                     case "host":
                     case "headers":
+                    case "action":
+                    case "routes":
                         $route[$opt] = $value;
                         break;
                     default:
-                        throw new Exception\InvalidRoute($pattern);
+                        throw new Exception\InvalidRoute("Invalid option $opt for pattern $pattern");
                 }
             }
         }
-        $this->routes[] = $route;
+        return $route;
     }
 
     /**
@@ -115,16 +166,47 @@ class Router {
 
         foreach ($routes as $possible_route) {
 
+            if (empty($possible_route["type"])) {
+                throw new Exception\InvalidRoute("No type set for route");
+            }
+
+            if (!empty($possible_route["action"]) && !empty($possible_route["routes"])) {
+                throw new Exception\InvalidRoute("Routes should include an action or routes, but not both");
+            }
+
+            if (empty($possible_route["action"]) && empty($possible_route["routes"])) {
+                throw new Exception\InvalidRoute("Routes must include an action or routes");
+            }
+
             if ($possible_route["type"] == "default") {
                 if (!empty($default_route)) {
                     throw new Exception\InvalidRoute("Multiple default routes defined");
                 }
                 $default_route = $possible_route;
             } else{
-                $parsed_route = $this->match_route($possible_route, $request_path, $server, $headers);
-                if ($parsed_route) {
-                    $route = $parsed_route;
-                    break;
+
+                if (empty($possible_route["pattern"])) {
+                    throw new Exception\InvalidRoute("No pattern set for route");
+                }
+
+                $matched_route = $this->match_route($possible_route, $request_path, $server, $headers);
+
+                if ($matched_route) {
+
+                    // If we have sub routes, use them to match
+                    if (!empty($matched_route["routes"])) {
+                        $matched_route = $this->match(
+                            $request_path,
+                            $matched_route["routes"],
+                            $server,
+                            $headers
+                        );
+                    }
+
+                    if ($matched_route) {
+                        $route = $matched_route;
+                        break;
+                    }
                 }
             }
         }
@@ -252,18 +334,6 @@ class Router {
      * @return mixed  False on error. Route array with tokens on success
      */
     public function match_path($route, $request_path) {
-
-        if (empty($route["type"])) {
-            throw new Exception\InvalidRoute("No type set for route");
-        }
-
-        if (empty($route["pattern"])) {
-            throw new Exception\InvalidRoute("No pattern set for route");
-        }
-
-        if (empty($route["action"])) {
-            throw new Exception\InvalidRoute("No action set for route");
-        }
 
         $tokens = $this->check_match($route, $request_path);
 
