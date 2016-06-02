@@ -323,6 +323,7 @@ The value of `$route` would be:
 ```
 array(
     "type" => "exact",
-    "action" => "FooBar",
+    "pattern" => "/foo/bar",
+    "action" => "FooBar"
 )
 ```
