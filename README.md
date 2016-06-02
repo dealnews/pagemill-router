@@ -271,10 +271,58 @@ Only one default route is allowed. An `InvalidRoute` exception will be thrown if
 
 ## Saving the Route List
 
-TODO
+If you would like to save the route list for reuse, you can call the `get_routes()` method.
 
-## Adding Route Maps
+```
+$r = new PageMill\Router\Router(
+    array(
+        array(
+            "type" => "exact",
+            "pattern" => "/foo/",
+            "action" => "Foo",
+        ),
+        array(
+            "type" => "default",
+            "action" => "Default",
+        )
+    )
+);
+$routes = $r->get_routes();
+```
 
-TODO
+## Adding Sub Routes (aka Route Maps)
 
+If you have several routes that all have the same prefix or match the same pattern, it can be beneficial to group those routes as sub-routes under a more general route. For example, if we hvae multiple routes that fall under the `/foo` path, we could configure our routes like this:
 
+```
+$r = new PageMill\Router\Router(
+    array(
+        array(
+            "type" => "starts_with",
+            "pattern" => "/foo",
+            "routes" => array(
+                array(
+                    "type" => "exact",
+                    "pattern" => "/foo/bar",
+                    "action" => "FooBar"
+                ),
+                array(
+                    "type" => "exact",
+                    "pattern" => "/foo/baz",
+                    "action" => "FooBaz"
+                ),
+            )
+        )
+    )
+);
+$route = $r->match("/foo/bar");
+```
+
+The value of `$route` would be:
+
+```
+array(
+    "type" => "exact",
+    "action" => "FooBar",
+)
+```
