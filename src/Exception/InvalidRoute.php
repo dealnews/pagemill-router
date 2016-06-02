@@ -1,7 +1,7 @@
 <?php
 
-namespace DealNews\PageMill\Router\Exception;
+namespace PageMill\Router\Exception;
 
-class InvalidRoute extends Exception
+class InvalidRoute extends \Exception
 {
 }

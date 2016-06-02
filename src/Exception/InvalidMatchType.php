@@ -1,7 +1,7 @@
 <?php
 
-namespace DealNews\PageMill\Router\Exception;
+namespace PageMill\Router\Exception;
 
-class InvalidMatchType extends Exception
+class InvalidMatchType extends \Exception
 {
 }

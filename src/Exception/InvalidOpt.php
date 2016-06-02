@@ -1,7 +1,7 @@
 <?php
 
-namespace DealNews\PageMill\Router\Exception;
+namespace PageMill\Router\Exception;
 
-class InvalidOpt extends Exception
+class InvalidOpt extends \Exception
 {
 }

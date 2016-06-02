@@ -1,7 +1,7 @@
 <?php
 
-namespace DealNews\PageMill\Router\Exception;
+namespace PageMill\Router\Exception;
 
-class InvalidPattern extends Exception
+class InvalidPattern extends \Exception
 {
 }
