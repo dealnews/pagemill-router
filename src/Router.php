@@ -109,6 +109,7 @@ class Router {
                     case "headers":
                     case "action":
                     case "routes":
+                    case "accept":
                         $route[$opt] = $value;
                         break;
                     default:
@@ -231,6 +232,7 @@ class Router {
         ($route = $this->match_path($route, $request_path)) &&
         ($route = $this->match_method($route, $server)) &&
         ($route = $this->match_headers($route, $headers)) &&
+        ($route = $this->match_accept($route, $headers)) &&
         ($route = $this->match_host($route, $server));
 
         return $route;
@@ -259,7 +261,83 @@ class Router {
         } elseif (!empty($server["REQUEST_METHOD"])) {
             $route["method"] = $server["REQUEST_METHOD"];
         }
-        $this->method_matched = ($route !== false);
+        return $route;
+    }
+
+    /**
+     * Determines if a route config matches the request's Accept header
+     *
+     * @param  array  $route  Route array
+     * @param  array  $server Array of server variables. e.g. $_SERVER
+     *
+     * @return mixed  False if there is not match, the route array with the
+     *                preferred mime typefilled in if there is a match
+     */
+    public function match_accept($route, $server) {
+        if (!empty($route["accept"])) {
+
+            if (is_string($route["accept"])) {
+                $route["accept"] = [$route["accept"]];
+            } elseif (!is_array($route["accept"])) {
+                throw new Exception\InvalidMatchType("Invalid accept list. Must be a single mime type or an array of mime types.");
+            }
+
+            $chosen_mime_type = false;
+
+            // RFC 2616 states that if there is no Accept header is provided
+            // that any type should be returned
+            if (!isset($server["HTTP_ACCEPT"])) {
+                $server["HTTP_ACCEPT"] = "*/*";
+            }
+
+            // Parse the Accept header
+            // see https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+            $accept_mime_types = explode(",", $server["HTTP_ACCEPT"]);
+            $mime_type_preference = [];
+            foreach ($accept_mime_types as $mime_type) {
+                $mime_type = trim($mime_type);
+                $preference = 1.0;
+                if (preg_match("/(.+?);q=(1|1.0|0.\d+)$/", $mime_type, $match)) {
+                    $preference = (float)$match[2];
+                    $mime_type = $match[1];
+                }
+                $mime_type_preference[$mime_type] = $preference;
+            }
+
+            // match the accept list against the Accept header
+            $preferred_mime_types = [];
+            foreach ($route["accept"] as $mime_type) {
+                foreach ($mime_type_preference as $mime_type_pattern => $quality) {
+                    $mime_type_pattern = strtolower($mime_type_pattern);
+                    // if the pattern from the Accept header contains a *,
+                    // convert this to a regex match
+                    if (strpos($mime_type_pattern, "*") !== false) {
+                        $mime_type_pattern = [
+                            "type" => "regex",
+                            "pattern" => '|^'.str_replace($mime_type_pattern, "*", ".+").'$|'
+                        ];
+                    }
+
+                    $result = $this->check_match(
+                        $mime_type_pattern,
+                        strtolower($mime_type)
+                    );
+                    if ($result !== false) {
+                        $preferred_mime_types[$mime_type] = $quality;
+                    }
+                }
+            }
+
+            if (!empty($preferred_mime_types)) {
+                // if we have a list of matched mime types,
+                // sort them by the client's preference and
+                // return the first one
+                arsort($preferred_mime_types);
+                $route["accept"] = key($preferred_mime_types);
+            } else {
+                $route = false;
+            }
+        }
         return $route;
     }
 
