@@ -331,8 +331,13 @@ class Router {
             if (!empty($preferred_mime_types)) {
                 // if we have a list of matched mime types,
                 // sort them by the client's preference and
-                // return the first one
-                arsort($preferred_mime_types);
+                // return the first one.
+                // PHP < 5 we can't assume that entries with
+                // the same values will keep the original order
+                // so we have to do this manually
+                uasort($preferred_mime_types, function($a, $b) {
+                    return $a < $b;
+                });
                 $route["accept"] = key($preferred_mime_types);
             } else {
                 $route = false;
