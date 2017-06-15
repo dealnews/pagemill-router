@@ -2,7 +2,7 @@
 
 namespace PageMill\Router;
 
-class NormalizeTest extends \PHPUnit_Framework_TestCase {
+class NormalizeTest extends \PHPUnit\Framework\TestCase {
 
     public function testPathDirectoryIndex() {
         $request_path = "/foo/bar/index.html";
