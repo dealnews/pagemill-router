@@ -2,7 +2,7 @@
 
 namespace PageMill\Router;
 
-class RouterTest extends \PHPUnit_Framework_TestCase {
+class RouterTest extends \PHPUnit\Framework\TestCase {
 
     public function testConstructor() {
         $r = new Router(
