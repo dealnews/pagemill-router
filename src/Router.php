@@ -153,11 +153,7 @@ class Router {
         }
 
         if ($headers === null) {
-            if (function_exists("apache_request_headers")) {
-                $headers = apache_request_headers();
-            } else {
-                $headers = array();
-            }
+            $headers = $this->get_headers($server);
         }
 
         $route = false;
@@ -301,16 +297,27 @@ class Router {
     public function match_headers($route, $headers) {
         if (!empty($route["headers"])) {
             $resp = array();
+
+            // RFC 2616 states that headers are case insensitive
+            foreach ($headers as $header => $value) {
+                $lower_header = strtolower($header);
+                if (!array_key_exists($lower_header, $headers)) {
+                    $headers[$lower_header] = $value;
+                    unset($headers[$header]);
+                }
+            }
+
             foreach ($route["headers"] as $header => $pattern) {
                 $result = false;
-                if (isset($headers[$header])) {
+                $lower_header = strtolower($header);
+                if (isset($headers[$lower_header])) {
                     $result = $this->check_match(
                         $pattern,
-                        $headers[$header]
+                        $headers[$lower_header]
                     );
                 }
                 if ($result !== false) {
-                    $resp[$header] = $headers[$header];
+                    $resp[$header] = $headers[$lower_header];
                 } else {
                     $route = false;
                     break;
@@ -426,5 +433,29 @@ class Router {
         }
 
         return $tokens;
+    }
+
+    /**
+     * Returns the headers from the request
+     *
+     * @param  array $server Array such as the $_SERVER array
+     *
+     * @return array         Array of headers and values
+     */
+    public function get_headers($server) {
+        $headers = array();
+        if (function_exists("apache_request_headers")) {
+            $headers = apache_request_headers();
+        } else {
+            // try and parse the headers from the server var. PHP creates
+            // some headers as variables in this array prefixed with HTTP_.
+            foreach ($server as $var => $value) {
+                if (strpos($var, "HTTP_") === 0) {
+                    $header = substr($var, 5);
+                    $headers[$header] = $value;
+                }
+            }
+        }
+        return $headers;
     }
 }
