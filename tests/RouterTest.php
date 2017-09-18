@@ -731,6 +731,192 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
         );
     }
 
+    public function testAcceptMatch() {
+        $r = new Router();
+
+        $route = array(
+            "type" => "exact",
+            "pattern" => "/foo/bar",
+            "action" => "FooBar",
+            "accept" => "text/html"
+        );
+
+        $resp = $r->match_accept(
+            $route,
+            array(
+                "HTTP_ACCEPT" => "text/html;q=0.1"
+            )
+        );
+        $this->assertEquals(
+            "text/html",
+            $resp["accept"]
+        );
+
+        $resp = $r->match_accept(
+            $route,
+            array(
+                "HTTP_ACCEPT" => "application/json;1.0,text/html;q=0.1"
+            )
+        );
+        $this->assertEquals(
+            "text/html",
+            $resp["accept"]
+        );
+
+        $route["accept"] = [
+            "application/json",
+            "text/html"
+        ];
+
+    }
+
+    public function testAcceptMatchQuality() {
+        $r = new Router();
+
+        $route = array(
+            "type" => "exact",
+            "pattern" => "/foo/bar",
+            "action" => "FooBar",
+            "accept" => [
+                "application/json",
+                "text/html"
+            ]
+        );
+
+        $resp = $r->match_accept(
+            $route,
+            array(
+                "HTTP_ACCEPT" => "application/json;q=1.0,text/html;q=0.1"
+            )
+        );
+        $this->assertEquals(
+            "application/json",
+            $resp["accept"]
+        );
+    }
+
+    public function testAcceptMatchEqualQuality() {
+        $r = new Router();
+
+        $route = array(
+            "type" => "exact",
+            "pattern" => "/foo/bar",
+            "action" => "FooBar",
+            "accept" => [
+                "application/json",
+                "text/html"
+            ]
+        );
+
+        $resp = $r->match_accept(
+            $route,
+            array(
+                "HTTP_ACCEPT" => "text/html;q=1.0,application/json;q=1.0"
+            )
+        );
+        $this->assertEquals(
+            "application/json",
+            $resp["accept"]
+        );
+    }
+
+    public function testAcceptMatchNone() {
+        $r = new Router();
+
+        $route = array(
+            "type" => "exact",
+            "pattern" => "/foo/bar",
+            "action" => "FooBar",
+            "accept" => [
+                "application/json",
+                "text/html"
+            ]
+        );
+
+        $resp = $r->match_accept(
+            $route,
+            []
+        );
+        $this->assertEquals(
+            "application/json",
+            $resp["accept"]
+        );
+    }
+
+    public function testAcceptMatchPartialWildcard() {
+        $r = new Router();
+
+        $route = array(
+            "type" => "exact",
+            "pattern" => "/foo/bar",
+            "action" => "FooBar",
+            "accept" => [
+                "application/json",
+                "text/html"
+            ]
+        );
+
+        $resp = $r->match_accept(
+            $route,
+            array(
+                "HTTP_ACCEPT" => "text/html;q=1.0,*/json;q=1.0"
+            )
+        );
+        $this->assertEquals(
+            "application/json",
+            $resp["accept"]
+        );
+    }
+
+    public function testAcceptMatchWildcard() {
+        $r = new Router();
+
+        $route = array(
+            "type" => "exact",
+            "pattern" => "/foo/bar",
+            "action" => "FooBar",
+            "accept" => [
+                "application/json"
+            ]
+        );
+
+        $resp = $r->match_accept(
+            $route,
+            array(
+                "HTTP_ACCEPT" => "text/html;q=1.0,*/*;q=1.0"
+            )
+        );
+        $this->assertEquals(
+            "application/json",
+            $resp["accept"]
+        );
+    }
+
+    public function testAcceptMatchCase() {
+        $r = new Router();
+
+        $route = array(
+            "type" => "exact",
+            "pattern" => "/foo/bar",
+            "action" => "FooBar",
+            "accept" => [
+                "application/JSON",
+                "text/html"
+            ]
+        );
+
+        $resp = $r->match_accept(
+            $route,
+            array(
+                "HTTP_ACCEPT" => "text/html;q=1.0,*/Json;q=1.0"
+            )
+        );
+        $this->assertEquals(
+            "application/JSON",
+            $resp["accept"]
+        );
+    }
+
     public function testCheckMatchString() {
         $r = new Router();
         $result = $r->check_match("foo", "foo");
