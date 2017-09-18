@@ -692,6 +692,45 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
         );
     }
 
+    public function testHeaderMatchCase() {
+        $r = new Router();
+        $route = array(
+            "type" => "exact",
+            "pattern" => "/foo/bar",
+            "action" => "FooBar",
+            "headers" => array(
+                "host" => "www.example.com"
+            )
+        );
+
+        $resp = $r->match_headers(
+            $route,
+            array(
+                "Host" => "www.example.com"
+            )
+        );
+        $this->assertEquals(
+            "www.example.com",
+            $resp["headers"]["host"]
+        );
+    }
+
+    public function testGetHeaders() {
+        $r = new Router();
+
+        $resp = $r->get_headers(
+            array(
+                "HTTP_HOST" => "www.example.com"
+            )
+        );
+        $this->assertEquals(
+            array(
+                "HOST" => "www.example.com"
+            ),
+            $resp
+        );
+    }
+
     public function testAcceptMatch() {
         $r = new Router();
 
