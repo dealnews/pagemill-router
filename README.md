@@ -110,7 +110,7 @@ The value of `$route` would be:
 
 ```
 array(
-    "type" => "starts_with",
+    "type" => "regex",
     "pattern" => "/foo/",
     "action" => "Foo",
     "tokens" = array(
