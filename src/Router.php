@@ -2,6 +2,9 @@
 
 namespace PageMill\Router;
 
+use \PageMill\Pattern\Pattern;
+use \PageMill\Accept\Accept;
+
 /**
  * Router Class
  *
@@ -270,6 +273,9 @@ class Router {
      *                preferred mime typefilled in if there is a match
      */
     public function match_accept($route, $server) {
+
+        static $accept;
+
         if (!empty($route["accept"])) {
 
             if (is_string($route["accept"])) {
@@ -278,60 +284,14 @@ class Router {
                 throw new Exception\InvalidMatchType("Invalid accept list. Must be a single mime type or an array of mime types.");
             }
 
-            $chosen_mime_type = false;
-
-            // RFC 2616 states that if there is no Accept header is provided
-            // that any type should be returned
-            if (!isset($server["HTTP_ACCEPT"])) {
-                $server["HTTP_ACCEPT"] = "*/*";
+            if (empty($accept)) {
+                $accept = new Accept();
             }
 
-            // Parse the Accept header
-            // see https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
-            $accept_mime_types = explode(",", $server["HTTP_ACCEPT"]);
-            $mime_type_preference = [];
-            foreach ($accept_mime_types as $mime_type) {
-                $mime_type = trim($mime_type);
-                $preference = 1.0;
-                if (preg_match("/(.+?);q=(1|1.0|0.\d+)$/", $mime_type, $match)) {
-                    $preference = (float)$match[2];
-                    $mime_type = $match[1];
-                }
-                $mime_type_preference[$mime_type] = $preference;
-            }
+            $chosen_mime_type = $accept->determine($route["accept"], $server);
 
-            // match the accept list against the Accept header
-            $preferred_mime_types = [];
-            foreach ($route["accept"] as $mime_type) {
-                foreach ($mime_type_preference as $mime_type_pattern => $quality) {
-                    $mime_type_pattern = strtolower($mime_type_pattern);
-                    // if the pattern from the Accept header contains a *,
-                    // convert this to a regex match
-                    if (strpos($mime_type_pattern, "*") !== false) {
-                        $mime_type_pattern = [
-                            "type" => "regex",
-                            "pattern" => '|^'.str_replace($mime_type_pattern, "*", ".+").'$|'
-                        ];
-                    }
-
-                    $result = $this->check_match(
-                        $mime_type_pattern,
-                        strtolower($mime_type)
-                    );
-                    if ($result !== false) {
-                        $preferred_mime_types[$mime_type] = $quality;
-                    }
-                }
-            }
-
-            if (!empty($preferred_mime_types)) {
-                uasort($preferred_mime_types, function($a, $b) {
-                    if ($a == $b) {
-                        return 0;
-                    }
-                    return ($a > $b) ? -1 : 1;
-                });
-                $route["accept"] = key($preferred_mime_types);
+            if ($chosen_mime_type !== false) {
+                $route["accept"] = $chosen_mime_type;
             } else {
                 $route = false;
             }
@@ -461,6 +421,8 @@ class Router {
      */
     public function check_match($match_plan, $match_target) {
 
+        static $pattern;
+
         $tokens = false;
 
         if (is_scalar($match_plan)) {
@@ -474,36 +436,22 @@ class Router {
                     $tokens = array();
                 }
             } elseif (!empty($match_plan["type"]) && !empty($match_plan["pattern"])) {
-                switch ($match_plan["type"]) {
-                    case "exact":
-                        if ($match_plan["pattern"] == $match_target) {
-                            $tokens = array();
-                        }
-                        break;
-                    case "regex":
-                        $result = preg_match($match_plan["pattern"], $match_target, $matches);
-                        if ($result === false) {
-                            throw new Exception\InvalidPattern("Invalid regex {$match_plan["pattern"]}");
-                        } elseif ($result) {
-                            if (!empty($matches[1])) {
-                                unset($matches[0]);
-                                $tokens = array_values($matches);
-                            } else{
-                                $tokens = array();
-                            }
-                        }
-                        break;
-                    case "starts_with":
-                        if (strpos($match_target, $match_plan["pattern"]) === 0) {
-                            if ($match_plan["pattern"] !== $match_target) {
-                                $tokens = substr($match_target, strlen($match_plan["pattern"]));
-                            } else {
-                                $tokens = array();
-                            }
-                        }
-                        break;
-                    default:
-                        throw new Exception\InvalidMatchType("Invalid type {$match_plan["type"]}");
+                if (empty($pattern)) {
+                    $pattern = new Pattern();
+                }
+                try {
+                    $tokens = $pattern->match(
+                        $match_plan["type"],
+                        [$match_plan["pattern"]],
+                        $match_target
+                    );
+                    if ($tokens === true) {
+                        $tokens = [];
+                    }
+                } catch (\PageMill\Pattern\Exception\InvalidType $e) {
+                    throw new Exception\InvalidMatchType("Invalid match plan");
+                } catch (\PageMill\Pattern\Exception\InvalidPattern $e) {
+                    throw new Exception\InvalidPattern("Invalid regex {$match_plan["pattern"]}");
                 }
             } else {
                 throw new Exception\InvalidMatchType("Invalid match plan");
