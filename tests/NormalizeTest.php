@@ -6,7 +6,7 @@ class NormalizeTest extends \PHPUnit\Framework\TestCase {
 
     public function testPathDirectoryIndex() {
         $request_path = "/foo/bar/index.html";
-        $request_path = Normalize::directory_index(
+        $request_path = Normalize::directoryIndex(
             $request_path,
             array(
                 "index.html"
@@ -46,7 +46,7 @@ class NormalizeTest extends \PHPUnit\Framework\TestCase {
 
     public function testEndingSlash() {
         $request_path = "/foo/bar";
-        $request_path = Normalize::ending_slash(
+        $request_path = Normalize::endingSlash(
             $request_path
         );
         $this->assertEquals(
@@ -57,7 +57,7 @@ class NormalizeTest extends \PHPUnit\Framework\TestCase {
 
     public function testEndingSlashExcludes() {
         $request_path = "/foo/bar/baz";
-        $request_path = Normalize::ending_slash(
+        $request_path = Normalize::endingSlash(
             $request_path,
             array(
                 "!^/foo/bar/baz!"

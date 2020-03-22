@@ -29,7 +29,7 @@ class Normalize {
      *
      * @return void
      */
-    public static function ending_slash($request_path, array $excludes = array()) {
+    public static function endingSlash(string $request_path, array $excludes = array()) {
 
         foreach ($excludes as $regex) {
             if (preg_match($regex, $request_path)) {
@@ -49,17 +49,16 @@ class Normalize {
 
     /**
      * Normalizes the path. This can be used to remove file names like
-     * index.html or add them. Also, any prefixes of the URL path that should
-     * be removed such as a sub-directory common to all paths.
+     * index.html or add them.
      *
-     * @param  string $request_path     URL path.
-     * @param  array  $directory_index  Array of file names to be removed from
-     *                                  the end of paths leaving only a / at
-     *                                  the end of the path.
+     * @param  string $request_path    URL path.
+     * @param  array  $directory_index Array of file names to be removed from
+     *                                 the end of paths leaving only a / at
+     *                                 the end of the path.
      *
      * @return string
      */
-    public static function directory_index($request_path, array $directory_index) {
+    public static function directoryIndex(string $request_path, array $directory_index): string {
 
         if (!empty($directory_index)) {
             foreach ($directory_index as $path) {
@@ -75,9 +74,9 @@ class Normalize {
     }
 
     /**
-     * Normalizes the path. This can be used to remove file names like
-     * index.html or add them. Also, any prefixes of the URL path that should
-     * be removed such as a sub-directory common to all paths.
+     * Normalizes the path by removing any prefixes of the URL path such as a
+     * sub-directory common to all paths. This is useful when using
+     * pre-defined routes where the application may exist in a sub-directory.
      *
      * @param  string $request_path     URL path.
      * @param  array  $prefixes         Array of strings to be removed from the
@@ -87,7 +86,7 @@ class Normalize {
      *
      * @return string
      */
-    public static function prefix($request_path, array $prefixes) {
+    public static function prefix(string $request_path, array $prefixes): string {
 
         if (!empty($prefixes)) {
             foreach ($prefixes as $path) {
