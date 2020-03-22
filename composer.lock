@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b956cc919d564d45f3fcd3b4dad4c5c7",
+    "content-hash": "646a8ff180df2af2b15286101499d390",
     "packages": [
         {
             "name": "pagemill/accept",
@@ -1671,7 +1671,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "~7.3.0"
+        "php": "~7.3"
     },
     "platform-dev": []
 }

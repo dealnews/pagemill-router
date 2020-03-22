@@ -16,7 +16,7 @@
         "phpunit/phpunit": "^9.0"
     },
     "require": {
-        "php": "~7.3.0",
+        "php": "~7.3",
         "pagemill/pattern": "^1.0",
         "pagemill/accept": "^1.0"
     },
