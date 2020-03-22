@@ -17,8 +17,10 @@ class Router {
 
     /**
      * Array of possible routes
+     *
+     * @var array
      */
-    protected $routes;
+    protected $routes = [];
 
     /**
      * Creates a new Router
@@ -28,7 +30,7 @@ class Router {
      *
      * @return object
      */
-    public function __construct(array $routes = array()) {
+    public function __construct(array $routes = []) {
 
         if (!empty($routes)) {
             $this->routes = $routes;
@@ -48,43 +50,9 @@ class Router {
      *                        to be used externally to answer the request.
      * @param array  $options Array of additional options for the route matching
      */
-    public function add($type, $pattern, $action, array $options = array()) {
+    public function add(string $type, string $pattern, $action, array $options = []) {
         $options["action"] = $action;
-        $route = $this->create_route($type, $pattern, $options);
-        $this->routes[] = $route;
-    }
-
-    /**
-     * Adds a route to the route list which contains a list of sub-routes
-     * to be used to find the final matching route.
-     *
-     * @param string $type    Matching type. One of exact, regex, starts_with,
-     *                        or default. There should be only one route with
-     *                        the type default.
-     * @param string $pattern Either a string or a regular expression
-     * @param array  $routes  Array of routes
-     * @param array  $options Array of additional options for the route matching
-     */
-    public function add_map($type, $pattern, array $routes, array $options = array()) {
-        $sub_routes = array();
-        foreach ($routes as $route) {
-            if (isset($route["type"])) {
-                $route_type = $route["type"];
-                unset($route["type"]);
-            } else {
-                $route_type = $type;
-            }
-            if (isset($route["pattern"])) {
-                $route_pattern = $route["pattern"];
-                unset($route["pattern"]);
-            } else {
-                $route_pattern = $pattern;
-            }
-            $sub_routes[] = $this->create_route($route_type, $route_pattern, $route);
-        }
-
-        $options["routes"] = $sub_routes;
-        $route = $this->create_route($type, $pattern, $options);
+        $route = $this->createRoute($type, $pattern, $options);
         $this->routes[] = $route;
     }
 
@@ -97,12 +65,14 @@ class Router {
      * @param string $pattern Either a string or a regular expression
      * @param array  $options Array of additional options for the route matching
      *                        as well as any action or list of sub-routes
+     *
+     * @return array
      */
-    public function create_route($type, $pattern, array $options = array()) {
-        $route = array(
+    public function createRoute(string $type, string $pattern, array $options = []): array {
+        $route = [
             "type" => $type,
             "pattern" => $pattern
-        );
+        ];
         if (!empty($options)) {
             foreach ($options as $opt => $value) {
                 switch ($opt) {
@@ -130,7 +100,7 @@ class Router {
      *
      * @return array
      */
-    public function get_routes() {
+    public function getRoutes(): array {
         return $this->routes;
     }
 
@@ -140,9 +110,9 @@ class Router {
      * @param  string  $request_path  Request path to match
      * @param  array   $routes        Array of routes
      *
-     * @return mixed  False on error. Route array on success
+     * @return array  Empty array if no matching route is found. Route array on success.
      */
-    public function match($request_path = null, array $routes = null, array $server = null, array $headers = null) {
+    public function match(?string $request_path = null, ?array $routes = null, ?array $server = null, ?array $headers = null): array {
 
         if ($request_path === null) {
             $request_path = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
@@ -157,39 +127,39 @@ class Router {
         }
 
         if ($headers === null) {
-            $headers = $this->get_headers($server);
+            $headers = $this->getHeaders($server);
         }
 
-        $route = false;
+        $route = [];
 
         $default_route = false;
 
         foreach ($routes as $possible_route) {
 
             if (empty($possible_route["type"])) {
-                throw new Exception\InvalidRoute("No type set for route");
+                throw new Exception\InvalidRoute("No type set for route", 1);
             }
 
             if (!empty($possible_route["action"]) && !empty($possible_route["routes"])) {
-                throw new Exception\InvalidRoute("Routes should include an action or routes, but not both");
+                throw new Exception\InvalidRoute("Routes should include an action or routes, but not both", 2);
             }
 
             if (empty($possible_route["action"]) && empty($possible_route["routes"])) {
-                throw new Exception\InvalidRoute("Routes must include an action or routes");
+                throw new Exception\InvalidRoute("Routes must include an action or routes", 3);
             }
 
             if ($possible_route["type"] == "default") {
                 if (!empty($default_route)) {
-                    throw new Exception\InvalidRoute("Multiple default routes defined");
+                    throw new Exception\InvalidRoute("Multiple default routes defined", 4);
                 }
                 $default_route = $possible_route;
             } else{
 
                 if (empty($possible_route["pattern"])) {
-                    throw new Exception\InvalidRoute("No pattern set for route");
+                    throw new Exception\InvalidRoute("No pattern set for route", 5);
                 }
 
-                $matched_route = $this->match_route($possible_route, $request_path, $server, $headers);
+                $matched_route = $this->matchRoute($possible_route, $request_path, $server, $headers);
 
                 if ($matched_route) {
 
@@ -224,15 +194,16 @@ class Router {
      * @param  array  $route        Route config array
      * @param  string $request_path Request path to match
      *
-     * @return mixed  False on error. Route array with tokens on success
+     * @return array  Empty array if there is no match, the route array
+     *                if there is a match.
      */
-    public function match_route($route, $request_path, $server, $headers) {
+    public function matchRoute($route, $request_path, $server, $headers) {
 
-        ($route = $this->match_path($route, $request_path)) &&
-        ($route = $this->match_method($route, $server)) &&
-        ($route = $this->match_headers($route, $headers)) &&
-        ($route = $this->match_accept($route, $headers)) &&
-        ($route = $this->match_host($route, $server));
+        ($route = $this->matchPath($route, $request_path)) &&
+        ($route = $this->matchMethod($route, $server)) &&
+        ($route = $this->matchHeaders($route, $headers)) &&
+        ($route = $this->matchAccept($route, $headers)) &&
+        ($route = $this->matchHost($route, $server));
 
         return $route;
     }
@@ -243,19 +214,19 @@ class Router {
      * @param  array  $route  Route array
      * @param  array  $server Array of server variables. e.g. $_SERVER
      *
-     * @return mixed  False if there is not match, the route array with the
+     * @return array  Empty array if there is no match, the route array with the
      *                method value filled in if there is a match
      */
-    public function match_method($route, $server) {
+    public function matchMethod(array $route, array $server): array {
         if (!empty($route["method"])) {
-            $result = $this->check_match(
+            $result = $this->checkMatch(
                 $route["method"],
                 $server["REQUEST_METHOD"]
             );
             if ($result !== false) {
                 $route["method"] = $server["REQUEST_METHOD"];
             } else {
-                $route = false;
+                $route = [];
             }
         } elseif (!empty($server["REQUEST_METHOD"])) {
             $route["method"] = $server["REQUEST_METHOD"];
@@ -269,10 +240,10 @@ class Router {
      * @param  array  $route  Route array
      * @param  array  $server Array of server variables. e.g. $_SERVER
      *
-     * @return mixed  False if there is not match, the route array with the
+     * @return array  Empty array if there is no match, the route array with the
      *                preferred mime typefilled in if there is a match
      */
-    public function match_accept($route, $server) {
+    public function matchAccept(array $route, array $server): array {
 
         static $accept;
 
@@ -281,7 +252,7 @@ class Router {
             if (is_string($route["accept"])) {
                 $route["accept"] = [$route["accept"]];
             } elseif (!is_array($route["accept"])) {
-                throw new Exception\InvalidMatchType("Invalid accept list. Must be a single mime type or an array of mime types.");
+                throw new Exception\InvalidMatchType("Invalid accept list. Must be a single mime type or an array of mime types.", 10);
             }
 
             if (empty($accept)) {
@@ -293,7 +264,7 @@ class Router {
             if ($chosen_mime_type !== false) {
                 $route["accept"] = $chosen_mime_type;
             } else {
-                $route = false;
+                $route = [];
             }
         }
         return $route;
@@ -305,22 +276,22 @@ class Router {
      * @param  array  $route  Route array
      * @param  array  $server Array of server variables. e.g. $_SERVER
      *
-     * @return mixed  False if there is not match, the route array with the
+     * @return array  Empty array if there is no match, the route array with the
      *                host value filled in if there is a match
      */
-    public function match_host($route, $server) {
+    public function matchHost(array $route, array $server): array {
         if (!empty($route["host"])) {
-            $result = $this->check_match(
+            $result = $this->checkMatch(
                 $route["host"],
                 $server["HTTP_HOST"]
             );
             if ($result !== false) {
                 $route["host"] = $server["HTTP_HOST"];
             } else {
-                $route = false;
+                $route = [];
             }
         }
-        $this->host_matched = ($route !== false);
+
         return $route;
     }
 
@@ -330,13 +301,13 @@ class Router {
      * @param  array  $route   Route array
      * @param  array  $headers Array of HTTP headers and values
      *
-     * @return mixed  False if there is not match, the route array with the
+     * @return array  Empty array if there is no match, the route array with the
      *                headers value filled in with the matching headers if
      *                there is a match
      */
-    public function match_headers($route, $headers) {
+    public function matchHeaders(array $route, array $headers): array {
         if (!empty($route["headers"])) {
-            $resp = array();
+            $resp = [];
 
             // RFC 2616 states that headers are case insensitive
             foreach ($headers as $header => $value) {
@@ -351,7 +322,7 @@ class Router {
                 $result = false;
                 $lower_header = strtolower($header);
                 if (isset($headers[$lower_header])) {
-                    $result = $this->check_match(
+                    $result = $this->checkMatch(
                         $pattern,
                         $headers[$lower_header]
                     );
@@ -359,15 +330,15 @@ class Router {
                 if ($result !== false) {
                     $resp[$header] = $headers[$lower_header];
                 } else {
-                    $route = false;
+                    $route = [];
                     break;
                 }
             }
-            if ($route !== false) {
+            if ($route !== []) {
                 $route["headers"] = $resp;
             }
         }
-        $this->headers_matched = ($route !== false);
+
         return $route;
     }
 
@@ -378,11 +349,11 @@ class Router {
      * @param  array  $route        Route config array
      * @param  string $request_path Request path to match
      *
-     * @return mixed  False on error. Route array with tokens on success
+     * @return array  Empty array on error. Route array with tokens on success
      */
-    public function match_path($route, $request_path) {
+    public function matchPath(array $route, string $request_path): array {
 
-        $tokens = $this->check_match($route, $request_path);
+        $tokens = $this->checkMatch($route, $request_path);
 
         if ($tokens !== false) {
             if (is_string($tokens)) {
@@ -391,22 +362,20 @@ class Router {
             }
             if (!empty($route["tokens"])) {
                 if (count($tokens) == count($route["tokens"])) {
-                    $new_arr = array();
+                    $new_arr = [];
                     foreach ($route["tokens"] as $key => $name) {
                         $new_arr[$name] = $tokens[$key];
                     }
                     $route["tokens"] = $new_arr;
                 } else {
-                    $route = false;
+                    $route = [];
                 }
             } else {
                 $route["tokens"] = $tokens;
             }
         } else {
-            $route = false;
+            $route = [];
         }
-
-        $this->path_matched = ($route !== false);
 
         return $route;
     }
@@ -414,12 +383,12 @@ class Router {
     /**
      * Determines if a route matches the request path
      *
-     * @param  array  $route        Route config array
-     * @param  string $request_path Request path to match
+     * @param  mixed  $match_plan   Array with a type and pattern
+     * @param  string $match_target Value to match the plain against
      *
-     * @return mixed  False on error. Route array with tokens on success
+     * @return mixed  False if it does not match. Array on success
      */
-    public function check_match($match_plan, $match_target) {
+    public function checkMatch($match_plan, string $match_target) {
 
         static $pattern;
 
@@ -427,13 +396,13 @@ class Router {
 
         if (is_scalar($match_plan)) {
             if ($match_plan == $match_target) {
-                $tokens = array();
+                $tokens = [];
             }
         } elseif (is_array($match_plan)) {
             $first_key = key($match_plan);
             if (is_numeric($first_key)) {
                 if (in_array($match_target, $match_plan)) {
-                    $tokens = array();
+                    $tokens = [];
                 }
             } elseif (!empty($match_plan["type"]) && !empty($match_plan["pattern"])) {
                 if (empty($pattern)) {
@@ -470,8 +439,8 @@ class Router {
      *
      * @return array         Array of headers and values
      */
-    public function get_headers($server) {
-        $headers = array();
+    public function getHeaders(array $server): array {
+        $headers = [];
         if (function_exists("apache_request_headers")) {
             $headers = apache_request_headers();
         } else {
