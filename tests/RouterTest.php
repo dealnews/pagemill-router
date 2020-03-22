@@ -4,54 +4,6 @@ namespace PageMill\Router;
 
 class RouterTest extends \PHPUnit\Framework\TestCase {
 
-    public function testConstructor() {
-        $r = new Router(
-            [
-                [
-                    "type" => "exact",
-                    "pattern" => "/foo",
-                    "action" => "Foo",
-                    "tokens" => []
-                ],
-                [
-                    "type" => "exact",
-                    "pattern" => "/foo/bar",
-                    "action" => "FooBar",
-                    "tokens" => []
-                ],
-            ]
-        );
-
-        $route = $r->match("/foo");
-        $this->assertEquals(
-            [
-                "type" => "exact",
-                "pattern" => "/foo",
-                "action" => "Foo",
-                "tokens" => []
-            ],
-            $route
-        );
-
-        $route = $r->match("/foo/bar");
-        $this->assertEquals(
-            [
-                "type" => "exact",
-                "pattern" => "/foo/bar",
-                "action" => "FooBar",
-                "tokens" => []
-            ],
-            $route
-        );
-
-        $route = $r->match("/foo/bar/baz");
-        $this->assertEquals(
-            [],
-            $route
-        );
-    }
-
-
     public function testAdd() {
         $r = new Router();
         $r->add(
@@ -368,64 +320,8 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
                 "pattern" => "/foo/bar",
                 "action" => "FooBar",
                 "method" => "GET",
-                "tokens" => [
-                    "1"
-                ]
+                "tokens" => []
             ],
-            $resp
-        );
-
-        $resp = $r->matchPath(
-            $route,
-            "/foo/bar/1/2/"
-        );
-        $this->assertEquals(
-            [
-                "type" => "starts_with",
-                "pattern" => "/foo/bar",
-                "action" => "FooBar",
-                "method" => "GET",
-                "tokens" => [
-                    "1",
-                    "2"
-                ]
-            ],
-            $resp
-        );
-
-        $route = [
-            "type" => "starts_with",
-            "pattern" => "/foo/bar",
-            "action" => "FooBar",
-            "method" => "GET",
-            "tokens" => [
-                "id"
-            ]
-        ];
-
-        $resp = $r->matchPath(
-            $route,
-            "/foo/bar/1/"
-        );
-        $this->assertEquals(
-            [
-                "type" => "starts_with",
-                "pattern" => "/foo/bar",
-                "action" => "FooBar",
-                "method" => "GET",
-                "tokens" => [
-                    "id" => "1",
-                ]
-            ],
-            $resp
-        );
-
-        $resp = $r->matchPath(
-            $route,
-            "/foo/bar/1/2/"
-        );
-        $this->assertEquals(
-            [],
             $resp
         );
     }
@@ -844,7 +740,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
         );
         $result = $r->checkMatch("foo", "bar");
         $this->assertEquals(
-            false,
+            null,
             $result
         );
     }
@@ -881,12 +777,12 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
             "foz"
         );
         $this->assertEquals(
-            false,
+            null,
             $result
         );
     }
 
-    public function testCheckMatchArrayExact() {
+    public function testCheckMatchPlanArray() {
         $r = new Router();
         $result = $r->checkMatch(
             [
@@ -907,75 +803,7 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
             "foz"
         );
         $this->assertEquals(
-            false,
-            $result
-        );
-    }
-
-    public function testCheckMatchArrayStartsWith() {
-        $r = new Router();
-        $result = $r->checkMatch(
-            [
-                "type" => "starts_with",
-                "pattern" => "/foo"
-            ],
-            "/foo"
-        );
-        $this->assertEquals(
-            [],
-            $result
-        );
-
-        $result = $r->checkMatch(
-            [
-                "type" => "starts_with",
-                "pattern" => "/foo"
-            ],
-            "/foo/bar"
-        );
-        $this->assertEquals(
-            "/bar",
-            $result
-        );
-
-        $result = $r->checkMatch(
-            [
-                "type" => "starts_with",
-                "pattern" => "/foo"
-            ],
-            "/foz/bar"
-        );
-        $this->assertEquals(
-            false,
-            $result
-        );
-    }
-
-    public function testCheckMatchRegex() {
-        $r = new Router();
-        $result = $r->checkMatch(
-            [
-                "type" => "regex",
-                "pattern" => "!^/foo!"
-            ],
-            "/foo"
-        );
-        $this->assertEquals(
-            [],
-            $result
-        );
-
-        $result = $r->checkMatch(
-            [
-                "type" => "regex",
-                "pattern" => "!^/foo/(\d+)/!"
-            ],
-            "/foo/1/"
-        );
-        $this->assertEquals(
-            [
-                1
-            ],
+            null,
             $result
         );
     }

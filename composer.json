@@ -17,8 +17,8 @@
     },
     "require": {
         "php": "~7.3",
-        "pagemill/pattern": "^1.0",
-        "pagemill/accept": "^1.0"
+        "pagemill/pattern": "~2.0",
+        "pagemill/accept": "~2.0"
     },
     "autoload": {
         "psr-4": {

@@ -4,27 +4,27 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "646a8ff180df2af2b15286101499d390",
+    "content-hash": "35de54cb75c064a755d0ce8ffe258dbd",
     "packages": [
         {
             "name": "pagemill/accept",
-            "version": "v1.0",
+            "version": "v2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dealnews/pagemill-accept.git",
-                "reference": "c40ee4b1665075fa87977224b034f7c01ca67971"
+                "reference": "1de3b4fcf9c8d71bd71c37a6d2ce97ae52d37a23"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dealnews/pagemill-accept/zipball/c40ee4b1665075fa87977224b034f7c01ca67971",
-                "reference": "c40ee4b1665075fa87977224b034f7c01ca67971",
+                "url": "https://api.github.com/repos/dealnews/pagemill-accept/zipball/1de3b4fcf9c8d71bd71c37a6d2ce97ae52d37a23",
+                "reference": "1de3b4fcf9c8d71bd71c37a6d2ce97ae52d37a23",
                 "shasum": ""
             },
             "require": {
-                "pagemill/pattern": "^1.0"
+                "php": "~7.3"
             },
             "require-dev": {
-                "phpunit/phpunit": "^7.5"
+                "phpunit/phpunit": "^9.0"
             },
             "type": "library",
             "autoload": {
@@ -43,24 +43,27 @@
                 }
             ],
             "description": "Parses the HTTP Accept header and determes the preferred content type",
-            "time": "2019-07-26T01:07:22+00:00"
+            "time": "2020-03-22T10:36:39+00:00"
         },
         {
             "name": "pagemill/pattern",
-            "version": "v1.0",
+            "version": "v2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dealnews/pagemill-pattern.git",
-                "reference": "55ca3814608927987250698a209d6b0a24f9f8ff"
+                "reference": "d8833aa1898d3bec9f275c60d110e72cf1b935fd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dealnews/pagemill-pattern/zipball/55ca3814608927987250698a209d6b0a24f9f8ff",
-                "reference": "55ca3814608927987250698a209d6b0a24f9f8ff",
+                "url": "https://api.github.com/repos/dealnews/pagemill-pattern/zipball/d8833aa1898d3bec9f275c60d110e72cf1b935fd",
+                "reference": "d8833aa1898d3bec9f275c60d110e72cf1b935fd",
                 "shasum": ""
             },
+            "require": {
+                "php": "~7.3"
+            },
             "require-dev": {
-                "phpunit/phpunit": "^7.5"
+                "phpunit/phpunit": "^9.0"
             },
             "type": "library",
             "autoload": {
@@ -79,7 +82,7 @@
                 }
             ],
             "description": "Common pattern matching used in PageMill",
-            "time": "2019-07-26T00:29:08+00:00"
+            "time": "2020-03-22T10:11:23+00:00"
         }
     ],
     "packages-dev": [

@@ -223,7 +223,7 @@ class Router {
                 $route["method"],
                 $server["REQUEST_METHOD"]
             );
-            if ($result !== false) {
+            if ($result !== null) {
                 $route["method"] = $server["REQUEST_METHOD"];
             } else {
                 $route = [];
@@ -261,7 +261,7 @@ class Router {
 
             $chosen_mime_type = $accept->determine($route["accept"], $server);
 
-            if ($chosen_mime_type !== false) {
+            if ($chosen_mime_type !== null) {
                 $route["accept"] = $chosen_mime_type;
             } else {
                 $route = [];
@@ -285,7 +285,7 @@ class Router {
                 $route["host"],
                 $server["HTTP_HOST"]
             );
-            if ($result !== false) {
+            if ($result !== null) {
                 $route["host"] = $server["HTTP_HOST"];
             } else {
                 $route = [];
@@ -327,7 +327,7 @@ class Router {
                         $headers[$lower_header]
                     );
                 }
-                if ($result !== false) {
+                if ($result !== null) {
                     $resp[$header] = $headers[$lower_header];
                 } else {
                     $route = [];
@@ -355,11 +355,7 @@ class Router {
 
         $tokens = $this->checkMatch($route, $request_path);
 
-        if ($tokens !== false) {
-            if (is_string($tokens)) {
-                $tokens = trim($tokens, "/");
-                $tokens = explode("/", $tokens);
-            }
+        if ($tokens !== null) {
             if (!empty($route["tokens"])) {
                 if (count($tokens) == count($route["tokens"])) {
                     $new_arr = [];
@@ -383,39 +379,50 @@ class Router {
     /**
      * Determines if a route matches the request path
      *
-     * @param  mixed  $match_plan   Array with a type and pattern
+     * @param  mixed  $match_plan   String, array of strings, or array with
+     *                              a type and pattern value.
      * @param  string $match_target Value to match the plain against
      *
-     * @return mixed  False if it does not match. Array on success
+     * @return ?array Null if it does not match. Array on success
      */
-    public function checkMatch($match_plan, string $match_target) {
+    public function checkMatch($match_plan, string $match_target): ?array {
 
         static $pattern;
 
-        $tokens = false;
+        $tokens = null;
 
         if (is_scalar($match_plan)) {
-            if ($match_plan == $match_target) {
-                $tokens = [];
-            }
-        } elseif (is_array($match_plan)) {
+            $match_plan = [
+                "type"    => "exact",
+                "pattern" => $match_plan
+            ];
+        }
+
+        if (is_array($match_plan)) {
+
             $first_key = key($match_plan);
             if (is_numeric($first_key)) {
-                if (in_array($match_target, $match_plan)) {
-                    $tokens = [];
-                }
-            } elseif (!empty($match_plan["type"]) && !empty($match_plan["pattern"])) {
+                $match_plan = [
+                    "type" => "exact",
+                    "pattern" => $match_plan
+                ];
+            }
+
+            if (!empty($match_plan["type"]) && !empty($match_plan["pattern"])) {
+
                 if (empty($pattern)) {
                     $pattern = new Pattern();
                 }
+
                 try {
-                    $tokens = $pattern->match(
+                    $match = $pattern->match(
                         $match_plan["type"],
-                        [$match_plan["pattern"]],
-                        $match_target
+                        is_array($match_plan["pattern"]) ? $match_plan["pattern"] : [$match_plan["pattern"]],
+                        $match_target,
+                        $token_val
                     );
-                    if ($tokens === true) {
-                        $tokens = [];
+                    if ($match === true) {
+                        $tokens = $token_val;
                     }
                 } catch (\PageMill\Pattern\Exception\InvalidType $e) {
                     throw new Exception\InvalidMatchType("Invalid match plan");
