@@ -301,32 +301,6 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
         );
     }
 
-    public function testPathTokenStartsWithMatch() {
-        $r = new Router();
-        $route = [
-            "type" => "starts_with",
-            "pattern" => "/foo/bar",
-            "action" => "FooBar",
-            "method" => "GET"
-        ];
-
-        $resp = $r->matchPath(
-            $route,
-            "/foo/bar/1/"
-        );
-        $this->assertEquals(
-            [
-                "type" => "starts_with",
-                "pattern" => "/foo/bar",
-                "action" => "FooBar",
-                "method" => "GET",
-                "tokens" => []
-            ],
-            $resp
-        );
-    }
-
-
     public function testPathTokenRegexMatch() {
         $r = new Router();
         $route = [
@@ -881,6 +855,35 @@ class RouterTest extends \PHPUnit\Framework\TestCase {
                 ],
                 5
             ],
+
+            "Tokens set on starts_with route" => [
+                [
+                    [
+                        "type" => "starts_with",
+                        "pattern" => "/foo/bar",
+                        "action" => "FooBar",
+                        "method" => "GET",
+                        "tokens" => [
+                            "foo"
+                        ]
+                    ],
+                ],
+                6
+            ],
+            "Tokens set on exact route" => [
+                [
+                    [
+                        "type" => "exact",
+                        "pattern" => "/foo/bar",
+                        "action" => "FooBar",
+                        "method" => "GET",
+                        "tokens" => [
+                            "foo"
+                        ]
+                    ],
+                ],
+                6
+            ]
         ];
     }
 }
