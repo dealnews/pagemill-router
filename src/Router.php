@@ -159,6 +159,10 @@ class Router {
                     throw new Exception\InvalidRoute("No pattern set for route", 5);
                 }
 
+                if (!empty($possible_route["tokens"]) && $possible_route["type"] != "regex") {
+                    throw new Exception\InvalidRoute("Tokens are only allowed for regular expression patterns", 6);
+                }
+
                 $matched_route = $this->matchRoute($possible_route, $request_path, $server, $headers);
 
                 if ($matched_route) {
