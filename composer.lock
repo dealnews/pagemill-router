@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "35de54cb75c064a755d0ce8ffe258dbd",
+    "content-hash": "a53e96ce1e6d5c114dbf8617cb5c716a",
     "packages": [
         {
             "name": "pagemill/accept",
@@ -47,16 +47,16 @@
         },
         {
             "name": "pagemill/pattern",
-            "version": "v2.0.0",
+            "version": "v2.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dealnews/pagemill-pattern.git",
-                "reference": "d8833aa1898d3bec9f275c60d110e72cf1b935fd"
+                "reference": "503df8542df8933ee294bc28b569963c7be7f6b0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dealnews/pagemill-pattern/zipball/d8833aa1898d3bec9f275c60d110e72cf1b935fd",
-                "reference": "d8833aa1898d3bec9f275c60d110e72cf1b935fd",
+                "url": "https://api.github.com/repos/dealnews/pagemill-pattern/zipball/503df8542df8933ee294bc28b569963c7be7f6b0",
+                "reference": "503df8542df8933ee294bc28b569963c7be7f6b0",
                 "shasum": ""
             },
             "require": {
@@ -82,7 +82,7 @@
                 }
             ],
             "description": "Common pattern matching used in PageMill",
-            "time": "2020-03-22T10:11:23+00:00"
+            "time": "2020-05-20T13:54:02+00:00"
         }
     ],
     "packages-dev": [
@@ -1676,5 +1676,6 @@
     "platform": {
         "php": "~7.3"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "1.1.0"
 }

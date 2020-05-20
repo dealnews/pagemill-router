@@ -17,7 +17,7 @@
     },
     "require": {
         "php": "~7.3",
-        "pagemill/pattern": "~2.0",
+        "pagemill/pattern": "^2.0.1",
         "pagemill/accept": "~2.0"
     },
     "autoload": {
